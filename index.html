@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Platformer with Score and High Score</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+    }
+    canvas {
+        display: block;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        margin: auto;
+    }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const player = {
+        x: 50,
+        y: 50,
+        width: 50,
+        height: 50,
+        speed: 5,
+        dx: 0,
+        dy: 0
+    };
+
+    const monster = {
+        x: 700,
+        y: 500,
+        width: 50,
+        height: 50,
+        speed: 2
+    };
+
+    let score = 0;
+    let highScore = 0;
+    let gameInterval = null;
+    let lastSpawnTime = 0;
+
+    function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw player
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+
+        // Draw monster
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(monster.x, monster.y, monster.width, monster.height);
+
+        // Move monster towards the player
+        if (monster.x < player.x) {
+            monster.x += monster.speed;
+        } else if (monster.x > player.x) {
+            monster.x -= monster.speed;
+        }
+        if (monster.y < player.y) {
+            monster.y += monster.speed;
+        } else if (monster.y > player.y) {
+            monster.y -= monster.speed;
+        }
+
+        // Check collision between player and monster
+        if (player.x < monster.x + monster.width &&
+            player.x + player.width > monster.x &&
+            player.y < monster.y + monster.height &&
+            player.y + player.height > monster.y) {
+            // Game over
+            gameOver();
+            return;
+        }
+
+        // Collision detection with boundaries
+        if (player.x < 0) {
+            player.x = 0;
+        } else if (player.x + player.width > canvas.width) {
+            player.x = canvas.width - player.width;
+        }
+        if (player.y < 0) {
+            player.y = 0;
+        } else if (player.y + player.height > canvas.height) {
+            player.y = canvas.height - player.height;
+        }
+
+        player.x += player.dx;
+        player.y += player.dy;
+
+        // Update and draw score
+        score++;
+        ctx.font = "20px Arial";
+        ctx.fillStyle = "#000";
+        ctx.fillText("Score: " + score, 10, 30);
+
+        // Draw high score
+        ctx.fillText("High Score: " + highScore, canvas.width - 150, 30);
+
+        requestAnimationFrame(update);
+    }
+
+    function increaseDifficulty() {
+        monster.speed += 0.5; // Increase monster speed
+    }
+
+    function startGame() {
+        gameInterval = setInterval(() => {
+            increaseDifficulty();
+        }, 3000); // Increase difficulty every 3 seconds
+
+        update();
+    }
+
+    function gameOver() {
+        clearInterval(gameInterval);
+
+        // Update high score if current score is higher
+        if (score > highScore) {
+            highScore = score;
+        }
+
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "#ff0000";
+        ctx.fillText("Game Over! Score: " + score, canvas.width / 2 - 150, canvas.height / 2 - 20);
+        ctx.fillText("High Score: " + highScore, canvas.width / 2 - 150, canvas.height / 2 + 20);
+    }
+
+    window.addEventListener("keydown", event => {
+        switch (event.key) {
+            case "ArrowUp":
+                player.dy = -player.speed;
+                break;
+            case "ArrowDown":
+                player.dy = player.speed;
+                break;
+            case "ArrowLeft":
+                player.dx = -player.speed;
+                break;
+            case "ArrowRight":
+                player.dx = player.speed;
+                break;
+        }
+    });
+
+    window.addEventListener("keyup", event => {
+        switch (event.key) {
+            case "ArrowUp":
+            case "ArrowDown":
+                player.dy = 0;
+                break;
+            case "ArrowLeft":
+            case "ArrowRight":
+                player.dx = 0;
+                break;
+        }
+    });
+
+    startGame();
+</script>
+</body>
+</html>
